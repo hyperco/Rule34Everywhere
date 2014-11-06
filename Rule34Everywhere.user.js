@@ -27,7 +27,7 @@ var MOST_COMMON_WORDS = ["don", "non","is","the","be","and","of","a","in","to","
 var banned = (function() {
   var c, res = MOST_COMMON_WORDS.slice(0);
   // do not include single letters
-  for (c = String.charCodeAt("a"); c <= String.charCodeAt("z") ; c++) {
+  for (c = "a".charCodeAt(0); c <= "z".charCodeAt(0); c++) {
     res.push(String.fromCharCode(c));
   }
 
