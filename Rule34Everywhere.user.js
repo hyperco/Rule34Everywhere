@@ -49,6 +49,7 @@ function SearchTree(tags, serialized) {
     for (i = 0; i < tags.length; i++) {
       tag = tags[i];
       parts = tag.split("_");
+
       this.insert(this.store, parts, tag);
     }
   }
@@ -204,15 +205,16 @@ function do_init(cb, force) {
     url : "http://rule34.paheal.net/tags/popularity",
     headers : {"Referer": ""},
     onload : function(resp) {
-      var t = $.parseHTML(resp.responseText, null, false);
+      var t = anonParseHtml(resp.responseText);
       var tags = [];
-      var tag_links = $(t).find("a[href^='/post/list/']");
+      var tag_links = $(t).find("#Tagsmain").find("a[href^='/post/list/']");
       tag_links.each(function (i, x) {
-        var u = $(x).prop("href");
-        if (!u.endsWith("/1")) { return; }
-
+        var u = $(x).attr("href");
         var parts = u.split("/");
+        if (parts[parts.length - 1] !== "1") { return; }
+
         var tag = decodeURIComponent(parts[parts.length - 2]).toLowerCase(); 
+
         if (jQuery.inArray(tag, banned) >= 0) { return; }
         tags.push(tag);
       });
@@ -415,7 +417,7 @@ if (enabled) {
 } else {
   GM_registerMenuCommand("Rule34Everywhere - Enable", function(){
     GM_setValue("enabled", true);
-    alert("Rule34Everywhere is now enabled.")
+    alert("Rule34Everywhere is now enabled.");
   }, "E");
   GM_registerMenuCommand("Rule34Everywhere - Run on page", processPage, "R");
 }
