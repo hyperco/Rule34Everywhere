@@ -39,6 +39,7 @@ var banned = (function() {
 }());
 
 // Search Tree class definition
+// The search tree is a radix tree. It gets big.
 function SearchTree(tags, serialized) {
   if (serialized) {
     this.store = JSON.parse(tags);
@@ -192,9 +193,9 @@ function customBase64Encode (inputStr) {
 }
 
 // Rule34Everywhere stuff
-function do_init(cb) {
+function do_init(cb, force) {
   var cached_tags = GM_getValue("tags", null);
-  if (cached_tags !== null) {
+  if (cached_tags !== null && !force) {
     return cb(new SearchTree(cached_tags, true));
   }
 
@@ -216,6 +217,9 @@ function do_init(cb) {
         tags.push(tag);
       });
 
+      // this is _really_ slow, but I know of no alternative.
+      // it also blocks the main thread...
+      // Web workers don't really 'work' in greasemonkey.
       var tree = new SearchTree(tags, false);
       GM_setValue("tags", tree.serialize());
       cb(tree);
@@ -311,7 +315,12 @@ var newel = $("<div></div>").css({
   'font-size':'20px',
   'margin': '0px',
   'padding': '0px',
-}), pahealLink = $("<a rel=\"noreferrer\"><img/></a>");
+}), pahealLink = $("<a rel=\"noreferrer\"><img/></a>").css({
+  'padding': '0px',
+  'margin': '0px',
+  'display': 'inline',
+  'border': '0px',
+});
 
 pahealLink.find("img").attr("src", GM_getResourceURL("paheal_favicon")).css({
   'display': 'inline-block',
@@ -393,7 +402,7 @@ function processPage() {
   pageProcessed = true;
   do_init(function (tree) {
     scanTextNodes(document.body, tree);
-  });
+  }, false);
 }
 
 var enabled = GM_getValue("enabled", true);
@@ -410,5 +419,11 @@ if (enabled) {
   }, "E");
   GM_registerMenuCommand("Rule34Everywhere - Run on page", processPage, "R");
 }
+
+GM_registerMenuCommand('Rule34Everywhere - Reload tags', function(){
+  do_init(function(tree) {
+    alert("Rule34 tags reloaded.");
+  }, true);
+}, 'R');
 
 }());
